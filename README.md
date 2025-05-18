@@ -31,5 +31,6 @@ O modelo foi treinado utilizando as seguintes variáveis:
 2. Total de Dívidas
 3. Score de Pagamento (Histórico de Pagamento em Dia)
 4. Idade
+```
 
-# Desafio 1, do modulo de IA, do curso do Vai na Web
+## Desafio 1, do modulo de IA, do curso do Vai na Web
