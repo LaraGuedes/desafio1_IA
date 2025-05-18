@@ -1,0 +1,47 @@
+# Importações
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+import joblib
+
+# Ler o arquivo
+caminho_csv = "elegibilidade_credito.csv"
+df = pd.read_csv(caminho_csv)
+
+
+df['historico_pagamento (score)'] = df['historico_pagamento (score)'].str.replace('.', '', regex=False)
+df['historico_pagamento (score)'] = pd.to_numeric(df['historico_pagamento (score)'], errors='coerce') / 1e17
+
+
+df.dropna(inplace=True) # Remover linhas com valores NaN
+
+# Selecionar as colunas
+X = df[['salario_anual', 'total_dividas', 'historico_pagamento (score)', 'idade']]
+y = df['elegibilidade']
+
+# Testes
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Treianr
+k = 7  
+model = KNeighborsClassifier(n_neighbors=k)
+model.fit(X_train_scaled, y_train)
+
+
+joblib.dump(model, "modelo_knn.joblib")
+joblib.dump(scaler, "scaler_knn.joblib")
+
+
+exemplo = np.array([[10000, 5000, 0.98, 35]])
+exemplo_scaled = scaler.transform(exemplo)
+previsao = model.predict(exemplo_scaled)
+
+# Saida
+print("Resultado previsto para o exemplo:", previsao[0])
