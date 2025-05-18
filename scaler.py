@@ -1,12 +1,19 @@
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
 import joblib
-import numpy as np
 
+df = pd.read_csv("elegibilidade_credito.csv") 
 
-scaler = joblib.load("scaler_knn.joblib")
+df['historico_pagamento (score)'] = df['historico_pagamento (score)'].str.replace('.', '', regex=False)
+df['historico_pagamento (score)'] = pd.to_numeric(df['historico_pagamento (score)'], errors='coerce') / 1e17
 
-entrada = np.array([[10000, 5000, 0.98, 35]])
+df.dropna(inplace=True)
 
+X = df[['salario_anual', 'total_dividas', 'historico_pagamento (score)', 'idade']]
 
-entrada_normalizada = scaler.transform(entrada)
+scaler = StandardScaler()
+X_normalizado = scaler.fit_transform(X)
 
-print("Entrada normalizada:", entrada_normalizada)
+joblib.dump(scaler, "scaler_knn.joblib")
+
+print("Scaler treinado e salvo como 'scaler_knn.joblib'")

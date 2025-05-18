@@ -1,47 +1,36 @@
-# Importações
 import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsClassifier
-import joblib
+from sklearn.cluster import KMeans
 
-# Ler o arquivo
-caminho_csv = "elegibilidade_credito.csv"
-df = pd.read_csv(caminho_csv)
+# Carregando o dataset
+df = pd.read_csv("elegibilidade_credito.csv")
 
-
+# Limpeza do score
 df['historico_pagamento (score)'] = df['historico_pagamento (score)'].str.replace('.', '', regex=False)
 df['historico_pagamento (score)'] = pd.to_numeric(df['historico_pagamento (score)'], errors='coerce') / 1e17
+df.dropna(inplace=True)
 
-
-df.dropna(inplace=True) # Remover linhas com valores NaN
-
-# Selecionar as colunas
+# Features para clustering
 X = df[['salario_anual', 'total_dividas', 'historico_pagamento (score)', 'idade']]
-y = df['elegibilidade']
 
-# Testes
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-
+# Normalizar os dados
 scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+X_scaled = scaler.fit_transform(X)
 
-# Treianr
-k = 7  
-model = KNeighborsClassifier(n_neighbors=k)
-model.fit(X_train_scaled, y_train)
+# Aplicar KMeans com 3 clusters
+kmeans = KMeans(n_clusters=3, random_state=42)
+clusters = kmeans.fit_predict(X_scaled)
 
+# Adicionar coluna com cluster no dataframe
+df['cluster'] = clusters
 
-joblib.dump(model, "modelo_knn.joblib")
-joblib.dump(scaler, "scaler_knn.joblib")
-
-
-exemplo = np.array([[10000, 5000, 0.98, 35]])
-exemplo_scaled = scaler.transform(exemplo)
-previsao = model.predict(exemplo_scaled)
-
-# Saida
-print("Resultado previsto para o exemplo:", previsao[0])
+# Visualização dos clusters (usando apenas duas variáveis para plotagem)
+plt.figure(figsize=(10, 6))
+plt.scatter(df['salario_anual'], df['total_dividas'], c=clusters, cmap='viridis')
+plt.xlabel("Salário Anual")
+plt.ylabel("Total de Dívidas")
+plt.title("Clustering das Solicitações de Crédito com KMeans")
+plt.colorbar(label='Cluster')
+plt.grid(True)
+plt.show()
